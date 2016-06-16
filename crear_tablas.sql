@@ -2,7 +2,7 @@
 	orden integer,
 	id integer,
 	fuente varchar(25),
-	periodo varchar(25),
+	mes varchar(25),
 	comisaria varchar(5),
 	fecha date,
 	hora time,
@@ -22,12 +22,12 @@
 	dia_semana varchar(25),
 	semestre integer,
 	repetido integer,
-	franja_etaria_acusado integer,
-	franja_etaria_victima integer
+	x double precision,
+	y double precision
 );
 
 CREATE TABLE victimas (
-	id_victima integer,
+	id_hecho integer,
 	causa varchar(50),
 	rol varchar(50),
 	tipo varchar(150),
@@ -42,7 +42,7 @@ CREATE TABLE victimas (
 );
 
 CREATE TABLE acusados (
-	id_acusado integer,
+	id_hecho integer,
 	rol varchar(50),
 	tipo varchar(150),
 	marca varchar(50),
@@ -54,20 +54,31 @@ CREATE TABLE acusados (
 	repetido integer
 );
 
-copy hechos from '/home/ivan/Projects/pruebas/da_tablas/hechos.csv' header csv encoding 'latin3';
+copy hechos from '/home/observatorio/Projects/da_arreglos/da_tablas/hechos_coordenadas.csv' header csv encoding 'latin3';
 
-copy victimas from '/home/ivan/Projects/pruebas/da_tablas/victimas.csv' header csv encoding 'latin3';
+copy victimas from '/home/observatorio/Projects/da_arreglos/da_tablas/victimas.csv' header csv encoding 'latin3';
 
-copy acusados from '/home/ivan/Projects/pruebas/da_tablas/acusados.csv' header csv encoding 'latin3';
+copy acusados from '/home/observatorio/Projects/da_arreglos/da_tablas/acusados.csv' header csv encoding 'latin3';
 
-
+-- Borrar duplicados
+delete from hechos where repetido = 1;
+delete from victimas where repetido = 1;
 delete from acusados where repetido = 1;
 
+-- Agregar claves primarias
 alter table hechos add constraint id_pk primary key (id);
+alter table victimas add column id serial primary key;
+alter table acusados add column id serial primary key;
 
-alter table victimas add foreign key (id_victima) references hechos(id);
+-- Agregar claves foraneas
+alter table victimas add foreign key (id_hecho) references hechos(id);
+alter table acusados add foreign key (id_hecho) references hechos(id);
 
-alter table acusados add foreign key (id_acusado) references hechos(id);
+-- Drop columna repetido
+alter table hechos drop column repetido;
+alter table victimas drop column repetido;
+alter table acusados drop column repetido;
+
 
 select * from hechos;
 select * from victimas;
@@ -108,10 +119,10 @@ join victimas
 on hechos.id = victimas.id_victima
 group by hechos.id;
 
-select id, lugar_hecho, causa
+select hechos.id, lugar_hecho, causa
 from hechos
 right outer join victimas
-on id = id_victima
+on hechos.id = victimas.id_hecho
 where causa = 'HOMICIDIO'; 
 
 select id_victima, causa
@@ -120,3 +131,6 @@ where causa = 'HOMICIDIO';
 
 drop table hechos;
 drop table victimas;
+drop table acusados;
+
+alter database prueba_tablas rename to pfa_dgc;
