@@ -63,3 +63,27 @@ delete from pfa_2015 where wkt_gk = '0';
 update pfa_2015 set wkt_wgs = ST_AsText(geom);
 
 
+update pfa_2015 set x = ST_X(geom), y = ST_Y(geom);
+
+select * from pfa_2015 where ST_DWithin(ST_SetSRID(geom, 97124), ST_SetSRID(ST_Point(-58.4688709698659, -34.629732201265), 97124), 20.0);
+
+select ST_Distance_Sphere(geom, ST_MakePoint(-58.4688709698659,-34.629732201265)) <= 0.00005 from pfa_2015;
+
+select * from pfa_2015 where ST_PointInsideCircle(geom, -58.4688709698659, -34.629732201265, 0.001);
+
+select * from pfa_2015 where ST_PointInsideCircle(ST_Transform(geom, 97124), ST_Transform(ST_MakePoint(-58.4688709698659,-34.629732201265), 97124), 200);
+
+-- Este funciona con metros, con las coord en gk
+select * from pfa_2015 where ST_DWithin(ST_Transform(geom, 97124), ST_GeomFromText('POINT(99434.1139023 99998.2519356)', 97124), 100);
+
+-- Este tambien funciona, pero transformando las coord en wgs a gk
+select * from pfa_2015 where ST_DWithin(ST_Transform(geom, 97124), ST_Transform(ST_GeomFromText('POINT(-58.4688709698659 -34.629732201265)', 4326), 97124), 150);
+
+-- Lo mismo pero usando las dos coord en float en vez de wkt. Hay que envolver makepoint en setsrid, si no no sabe en que sistema esta
+select * from pfa_2015 where ST_DWithin(ST_Transform(geom, 97124), ST_Transform(ST_SetSRID(ST_MakePoint(-58.4688709698659, -34.629732201265), 4326), 97124), 150);
+
+
+
+
+
+
